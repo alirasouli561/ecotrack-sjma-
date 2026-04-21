@@ -89,6 +89,7 @@ export default function CitizenMap() {
         fill,
         type: TYPE_LABEL[c.id_type] || 'Conteneur',
         capacite: c.capacite_l,
+        id_zone: c.id_zone,
       }));
       layers.push(circle);
     });
@@ -149,7 +150,7 @@ export default function CitizenMap() {
             <div className="popup-progress-bar">
               <div className="popup-progress-fill" style={{ width: selected.fill + '%', background: fillColor(selected.fill) }} />
             </div>
-            <button className="popup-signaler-btn" onClick={() => navigate('/citoyen/signaler', { state: { conteneurUid: selected.label, id_conteneur: selected.id } })}>
+            <button className="popup-signaler-btn" onClick={() => navigate('/citoyen/signaler', { state: { conteneurUid: selected.label, id_conteneur: selected.id, type: selected.type, zone: selected.id_zone ? `Zone ${selected.id_zone}` : null } })}>
               <i className="fas fa-exclamation-triangle"></i> Signaler un problème
             </button>
           </div>

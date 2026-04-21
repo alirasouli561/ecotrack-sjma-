@@ -1,112 +1,299 @@
 .citizen-signaler {
-  display: flex; flex-direction: column; min-height: 100vh; background: #fff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #fff;
 }
 
-.sig-steps {
-  display: flex; align-items: center; justify-content: center;
-  padding: 16px 20px; gap: 0;
-}
-.sig-step-item { display: flex; align-items: center; }
-.sig-step-dot {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: #e0e0e0; color: #999; font-size: 0.8rem; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-}
-.sig-step-dot.active { background: #4CAF50; color: #fff; }
-.sig-step-line { width: 48px; height: 3px; background: #e0e0e0; transition: background 0.2s; }
-.sig-step-line.active { background: #4CAF50; }
-
-.signaler-body { flex: 1; padding: 0 16px 16px; overflow-y: auto; }
-
-.step-content h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-.step-subtitle { font-size: 0.8rem; color: #888; margin-bottom: 16px; }
-
-.scan-box {
-  border: 2px dashed #4CAF50; border-radius: 12px; padding: 20px;
-  text-align: center; color: #4CAF50; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 12px;
-}
-.scan-box i { font-size: 2rem; }
-.scan-box span { font-size: 0.85rem; font-weight: 600; }
-
-.form-or {
-  text-align: center; color: #aaa; font-size: 0.8rem; margin-bottom: 12px; position: relative;
-}
-.form-or::before, .form-or::after {
-  content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: #e0e0e0;
-}
-.form-or::before { left: 0; } .form-or::after { right: 0; }
-
-.sig-form-group { margin-bottom: 16px; }
-.sig-form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #555; margin-bottom: 8px; }
-.sig-input, .sig-textarea {
-  width: 100%; padding: 12px; border: 1px solid #ddd;
-  border-radius: 10px; font-size: 0.9rem; outline: none; font-family: inherit;
-  transition: border 0.2s;
-}
-.sig-input:focus, .sig-textarea:focus { border-color: #4CAF50; }
-.sig-textarea { resize: none; }
-
-.selected-container {
-  display: flex; align-items: center; gap: 8px;
-  background: #e8f5e9; border-radius: 10px; padding: 10px 14px;
-  color: #4CAF50; font-size: 0.85rem; font-weight: 600;
+.signaler-body {
+  flex: 1;
+  padding: 16px 18px 96px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.type-radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.type-radio-card {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px;
-  background: #fff; cursor: pointer; font-size: 0.8rem; color: #555; transition: all 0.2s;
+/* ---------- Section heading ---------- */
+.sig-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.type-radio-card i { font-size: 1.3rem; color: #aaa; }
-.type-radio-card.active { border-color: #4CAF50; background: #e8f5e9; }
-.type-radio-card.active i { color: #4CAF50; }
-.type-radio-card.active span { color: #2E7D32; font-weight: 600; }
-
-.urgence-selector { display: flex; gap: 8px; }
-.urgence-btn {
-  flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px;
-  background: #fff; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
-}
-.urgence-btn.active { border-color: #FF9800; background: #fff3e0; color: #e65100; font-weight: 600; }
-
-.photo-upload-btn {
-  width: 100%; padding: 12px; border: 1px dashed #ccc; border-radius: 10px;
-  background: #f8f9fa; color: #888; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;
+.sig-section-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #2b2b2b;
 }
 
-.recap-card {
-  background: #f8f9fa; border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+/* ---------- Identifier: 2-column action cards ---------- */
+.sig-action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
-.recap-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 16px; border-bottom: 1px solid #eee; font-size: 0.85rem;
+.sig-action-card {
+  background: #fff;
+  border: 2px dashed #cfd8dc;
+  border-radius: 14px;
+  padding: 18px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2e3b44;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
-.recap-row:last-child { border-bottom: none; }
-.recap-row span { color: #888; }
-.recap-row strong { color: #333; max-width: 60%; text-align: right; }
-.recap-points {
-  background: #e8f5e9; border-radius: 10px; padding: 12px;
-  color: #2E7D32; font-size: 0.82rem; text-align: center;
+.sig-action-card i {
+  font-size: 1.5rem;
+  color: #4CAF50;
 }
-.recap-points i { color: #FF9800; }
+.sig-action-card:hover,
+.sig-action-card:focus-visible {
+  border-color: #4CAF50;
+  background: #f6fbf7;
+  outline: none;
+}
 
-.sig-nav-btns {
-  display: flex; gap: 10px;
-  padding: 12px 16px max(env(safe-area-inset-bottom, 0px), 12px);
-  background: #fff; border-top: 1px solid #eee;
+/* ---------- UID fallback input ---------- */
+.sig-uid-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  outline: none;
+  background: #fafafa;
+  transition: border-color 0.15s, background 0.15s;
 }
+.sig-uid-input:focus {
+  border-color: #4CAF50;
+  background: #fff;
+}
+
+/* ---------- Green confirmation card ---------- */
+.sig-container-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #eaf6ec;
+  border: 1px solid #c8e6c9;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.sig-container-card > i {
+  font-size: 1.2rem;
+  color: #2e7d32;
+}
+.sig-container-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sig-container-card strong {
+  color: #1b5e20;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.sig-container-card span {
+  color: #3c6840;
+  font-size: 0.8rem;
+}
+
+/* ---------- Type de problème grid ---------- */
+.sig-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.sig-type-card {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #37474f;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sig-type-card i {
+  font-size: 1.35rem;
+  color: #78909c;
+  transition: color 0.15s;
+}
+.sig-type-card.active {
+  border-color: #4CAF50;
+  background: #eaf6ec;
+  color: #1b5e20;
+}
+.sig-type-card.active i {
+  color: #2e7d32;
+}
+.sig-placeholder {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #888;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ---------- Photo drop ---------- */
+.sig-photo-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 110px;
+  border: 2px dashed #d0d7dc;
+  border-radius: 14px;
+  background: #fafbfc;
+  color: #8a96a0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 16px;
+  overflow: hidden;
+}
+.sig-photo-drop i {
+  font-size: 1.4rem;
+  color: #a0adb5;
+}
+.sig-photo-drop img {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.sig-photo-drop:hover {
+  border-color: #4CAF50;
+  color: #4CAF50;
+}
+.sig-photo-drop:hover i {
+  color: #4CAF50;
+}
+
+/* ---------- Urgence pills ---------- */
+.sig-urgence-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.sig-urgence-pill {
+  padding: 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  color: #455a64;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sig-urgence-pill:hover {
+  border-color: #b0bec5;
+}
+
+/* ---------- Description textarea ---------- */
+.sig-textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 12px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.sig-textarea:focus {
+  border-color: #4CAF50;
+  background: #fff;
+}
+
+/* ---------- Submit ---------- */
+.sig-submit-btn {
+  margin-top: 4px;
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(90deg, #43a047 0%, #2e7d32 100%);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(76, 175, 80, 0.25);
+  transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+}
+.sig-submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.sig-submit-btn:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.sig-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+/* Spinner reused from global styles; fallback */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: sig-spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes sig-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* -------- Legacy styles kept for success page compatibility -------- */
 .sig-btn-primary {
-  flex: 1; padding: 14px; background: #4CAF50; color: #fff;
-  border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  transition: background 0.2s;
+  flex: 1;
+  padding: 14px;
+  background: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
 }
-.sig-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .sig-btn-outline {
-  flex: 1; padding: 14px; background: transparent; color: #555;
-  border: 2px solid #ddd; border-radius: 12px; font-size: 0.95rem; cursor: pointer;
+  flex: 1;
+  padding: 14px;
+  background: transparent;
+  color: #555;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  cursor: pointer;
 }

@@ -24,9 +24,11 @@ class Validators {
    * Valide l'UID d'un conteneur
    */
   static validateContainerUid(uid) {
-    const uidRegex = /^CNT-[A-Z0-9]{11,12}$/;
+    // Accept any UID matching CNT- followed by 5 to 12 alphanumeric chars.
+    // This covers both legacy seed UIDs (CNT-00012) and longer generated ones (CNT-2026-00456).
+    const uidRegex = /^CNT-[A-Z0-9-]{4,16}$/;
     if (typeof uid !== 'string' || !uidRegex.test(uid)) {
-      Validators.throwValidationError('UID de conteneur invalide: doit respecter le format CNT-XXXXXXXXXXXX (11 ou 12 caractères)');
+      Validators.throwValidationError('UID de conteneur invalide: doit respecter le format CNT-XXXX…');
     }
   }
   /**

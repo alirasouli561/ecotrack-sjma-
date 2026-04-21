@@ -44,6 +44,7 @@ export const citizenService = {
     return api.get(`/api/containers?${params}`).then((r) => r.data?.data ?? r.data);
   },
   getContainerById: (id) => api.get(`/api/containers/id/${id}`).then((r) => r.data?.data ?? r.data),
+  getContainerByUid: (uid) => api.get(`/api/containers/uid/${uid}`).then((r) => r.data?.data ?? r.data),
 
   // --- Gamification ---
   getMyStats: (userId) => api.get(`/api/gamification/stats/utilisateurs/${userId}/stats`).then((r) => r.data),

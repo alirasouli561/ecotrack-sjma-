@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MobileScreenHeader from '../../components/mobile/MobileScreenHeader';
 import { citizenService } from '../../services/citizenService';
 import './CitizenSignaler.css';
 
-// Visual defaults; libellé maps to what's returned by /signalements/types
+// Icons per backend type code
 const TYPE_ICONS = {
-  CONTENEUR_PLEIN: 'fa-dumpster-fire',
-  CONTENEUR_ENDOMMAGE: 'fa-tools',
+  CONTENEUR_PLEIN: 'fa-fill-drip',
+  CONTENEUR_ENDOMMAGE: 'fa-screwdriver-wrench',
   DEPOT_SAUVAGE: 'fa-trash',
   MAUVAISE_ODEUR: 'fa-wind',
   CONTENEUR_INACCESSIBLE: 'fa-ban',
@@ -15,23 +15,56 @@ const TYPE_ICONS = {
   CAPTEUR_DEFAILLANT: 'fa-microchip',
 };
 
-const URGENCES = ['Basse', 'Moyenne', 'Haute'];
+// Short labels shown in the type grid
+const TYPE_LABELS = {
+  CONTENEUR_PLEIN: 'Débordement',
+  CONTENEUR_ENDOMMAGE: 'Dégradation',
+  DEPOT_SAUVAGE: 'Dépôt sauvage',
+  MAUVAISE_ODEUR: 'Mauvaise odeur',
+  CONTENEUR_INACCESSIBLE: 'Inaccessible',
+  CONTENEUR_SALE: 'Conteneur sale',
+  CAPTEUR_DEFAILLANT: 'Capteur défaillant',
+};
+
+// Map conteneur.id_type → display label
+const CONTAINER_TYPE_LABEL = {
+  1: 'Ordures ménagères',
+  2: 'Recyclage',
+  3: 'Verre',
+  4: 'Compost',
+};
+
+const URGENCES = [
+  { key: 'Basse',   color: '#4CAF50', bg: '#e8f5e9' },
+  { key: 'Moyenne', color: '#FF9800', bg: '#fff3e0' },
+  { key: 'Haute',   color: '#f44336', bg: '#ffebee' },
+];
 
 export default function CitizenSignaler() {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const [step, setStep] = useState(1);
+
+  // Container selection
+  const [conteneurUid, setConteneurUid] = useState(state?.conteneurUid || '');
+  const [idConteneur, setIdConteneur] = useState(state?.id_conteneur || null);
+  const [conteneurInfo, setConteneurInfo] = useState(
+    state?.id_conteneur || state?.conteneurUid
+      ? { uid: state.conteneurUid, typeLabel: state?.type || null, zone: state?.zone || null }
+      : null
+  );
+
+  // Form fields
   const [types, setTypes] = useState([]);
-  const [form, setForm] = useState({
-    conteneurId: state?.conteneurUid || '',
-    id_conteneur: state?.id_conteneur || null,
-    id_type: null,
-    urgence: 'Moyenne',
-    description: '',
-  });
+  const [idType, setIdType] = useState(null);
+  const [urgence, setUrgence] = useState('Moyenne');
+  const [description, setDescription] = useState('');
+  const [photoDataUrl, setPhotoDataUrl] = useState(null);
+
+  // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Load signalement types once
   useEffect(() => {
     citizenService.getSignalementTypes()
       .then(t => {
@@ -41,157 +74,185 @@ export default function CitizenSignaler() {
       .catch(e => console.error('Failed to load types', e));
   }, []);
 
-  const canNext = () => {
-    if (step === 1) return form.conteneurId.trim().length > 0 || form.id_conteneur;
-    if (step === 2) return form.id_type != null;
-    return true;
+  // Debounced targeted lookup of the container by UID so the green card shows
+  // zone + type info. Falls back to "just the UID" if the lookup fails.
+  useEffect(() => {
+    if (!conteneurUid || idConteneur) return; // already resolved
+    const uid = conteneurUid.trim().toUpperCase();
+    if (!uid) return;
+    let alive = true;
+    const t = setTimeout(async () => {
+      try {
+        const found = await citizenService.getContainerByUid(uid);
+        if (!alive || !found) return;
+        setIdConteneur(found.id_conteneur);
+        setConteneurInfo({
+          uid: found.uid,
+          typeLabel: CONTAINER_TYPE_LABEL[found.id_type] || 'Conteneur',
+          zone: found.id_zone ? `Zone ${found.id_zone}` : null,
+        });
+      } catch {
+        // Unknown UID — still show the card so the user knows what they typed is captured
+        if (!alive) return;
+        setConteneurInfo({ uid, typeLabel: null, zone: null });
+      }
+    }, 400);
+    return () => { alive = false; clearTimeout(t); };
+  }, [conteneurUid, idConteneur]);
+
+  const canSubmit = useMemo(() => {
+    return (conteneurUid.trim().length > 0 || idConteneur) && idType != null && !loading;
+  }, [conteneurUid, idConteneur, idType, loading]);
+
+  const handlePhoto = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => setPhotoDataUrl(reader.result);
+    reader.readAsDataURL(f);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!canSubmit) return;
     setLoading(true);
     setError('');
     try {
+      const selectedType = types.find(t => t.id_type === idType);
+      const typeLabel = selectedType?.libelle || 'Problème';
       const payload = {
-        description: form.description || `Signalement citoyen — ${types.find(t => t.id_type === form.id_type)?.libelle || 'Problème'}`,
-        id_type: form.id_type,
+        description: description.trim() || `Signalement citoyen — ${typeLabel.replace(/_/g, ' ').toLowerCase()} (${urgence})`,
+        id_type: idType,
       };
-      if (form.id_conteneur) payload.id_conteneur = form.id_conteneur;
-      else payload.conteneur_uid = form.conteneurId;
+      if (idConteneur) payload.id_conteneur = idConteneur;
+      else payload.conteneur_uid = conteneurUid.trim();
 
       const res = await citizenService.createSignalement(payload);
       const id = res?.id_signalement || res?.data?.id_signalement;
       navigate('/citoyen/signaler/success', { state: { id, payload } });
     } catch (err) {
       console.error('Create signalement failed', err);
-      const msg = err.response?.data?.message || err.message || 'Erreur lors de la création';
+      const msg = err.response?.data?.message || err.message || 'Erreur lors de la création du signalement';
       setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedType = types.find(t => t.id_type === form.id_type);
-
   return (
     <div className="citizen-signaler">
-      <MobileScreenHeader title="Nouveau signalement" backTo="/citoyen" />
+      <MobileScreenHeader title="Nouveau Signalement" backTo="/citoyen" />
 
-      <div className="sig-steps">
-        {[1, 2, 3].map(s => (
-          <div key={s} className="sig-step-item">
-            <div className={`sig-step-dot ${s <= step ? 'active' : ''}`}>{s}</div>
-            {s < 3 && <div className={`sig-step-line ${s < step ? 'active' : ''}`} />}
-          </div>
-        ))}
-      </div>
-
-      <div className="signaler-body">
-        {step === 1 && (
-          <div className="step-content">
-            <h3>Identifier le conteneur</h3>
-            <p className="step-subtitle">Scannez le QR code ou saisissez l'identifiant</p>
-            <div className="scan-box">
+      <form className="signaler-body" onSubmit={handleSubmit}>
+        {/* ---------- Identifier le conteneur ---------- */}
+        <div className="sig-section">
+          <label className="sig-section-label">Identifier le conteneur</label>
+          <div className="sig-action-row">
+            <button type="button" className="sig-action-card" onClick={() => alert('Scanner QR — à venir')}>
               <i className="fas fa-qrcode"></i>
-              <span>Scanner le QR code</span>
-            </div>
-            <div className="form-or"><span>ou</span></div>
-            <div className="sig-form-group">
-              <label>Identifiant du conteneur (ex: CNT-00012)</label>
-              <input
-                className="sig-input"
-                placeholder="CNT-00XXX"
-                value={form.conteneurId}
-                onChange={e => setForm({ ...form, conteneurId: e.target.value, id_conteneur: null })}
-              />
-            </div>
-            {form.conteneurId && (
-              <div className="selected-container">
-                <i className="fas fa-check-circle"></i>
-                <span>{form.conteneurId}</span>
+              <span>Scanner QR Code</span>
+            </button>
+            <button type="button" className="sig-action-card" onClick={() => navigate('/citoyen/carte')}>
+              <i className="fas fa-map-marker-alt"></i>
+              <span>Choisir sur la carte</span>
+            </button>
+          </div>
+
+          <input
+            type="text"
+            className="sig-input sig-uid-input"
+            placeholder="Ou saisir l'identifiant (ex: CNT-00012)"
+            value={conteneurUid}
+            onChange={e => { setConteneurUid(e.target.value); setIdConteneur(null); setConteneurInfo(null); }}
+          />
+
+          {conteneurInfo && (
+            <div className="sig-container-card">
+              <i className="fas fa-check-circle"></i>
+              <div>
+                <strong>{conteneurInfo.uid}</strong>
+                <span>
+                  {[conteneurInfo.zone, conteneurInfo.typeLabel].filter(Boolean).join(' — ') || 'Conteneur sélectionné'}
+                </span>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* ---------- Type de problème ---------- */}
+        <div className="sig-section">
+          <label className="sig-section-label">Type de problème</label>
+          <div className="sig-type-grid">
+            {types.length === 0 && <p className="sig-placeholder">Chargement des types…</p>}
+            {types.map(t => (
+              <button
+                key={t.id_type}
+                type="button"
+                className={`sig-type-card ${idType === t.id_type ? 'active' : ''}`}
+                onClick={() => setIdType(t.id_type)}
+              >
+                <i className={`fas ${TYPE_ICONS[t.libelle] || 'fa-exclamation-triangle'}`}></i>
+                <span>{TYPE_LABELS[t.libelle] || t.libelle.replace(/_/g, ' ').toLowerCase()}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ---------- Photo ---------- */}
+        <div className="sig-section">
+          <label className="sig-section-label">Photo (optionnel)</label>
+          <label className="sig-photo-drop">
+            {photoDataUrl ? (
+              <img src={photoDataUrl} alt="aperçu" />
+            ) : (
+              <>
+                <i className="fas fa-camera"></i>
+                <span>Prendre une photo</span>
+              </>
             )}
-          </div>
-        )}
+            <input type="file" accept="image/*" capture="environment" onChange={handlePhoto} hidden />
+          </label>
+        </div>
 
-        {step === 2 && (
-          <div className="step-content">
-            <h3>Décrire le problème</h3>
-            <div className="sig-form-group">
-              <label>Type de problème</label>
-              <div className="type-radio-grid">
-                {types.map(t => (
-                  <button
-                    key={t.id_type}
-                    className={`type-radio-card ${form.id_type === t.id_type ? 'active' : ''}`}
-                    onClick={() => setForm({ ...form, id_type: t.id_type })}
-                  >
-                    <i className={`fas ${TYPE_ICONS[t.libelle] || 'fa-exclamation-triangle'}`}></i>
-                    <span>{t.libelle.replace(/_/g, ' ').toLowerCase()}</span>
-                  </button>
-                ))}
-                {types.length === 0 && <p style={{ gridColumn: '1/-1', color: '#888' }}>Chargement des types…</p>}
-              </div>
-            </div>
-            <div className="sig-form-group">
-              <label>Niveau d'urgence</label>
-              <div className="urgence-selector">
-                {URGENCES.map(u => (
-                  <button
-                    key={u}
-                    className={`urgence-btn ${form.urgence === u ? 'active' : ''}`}
-                    onClick={() => setForm({ ...form, urgence: u })}
-                  >
-                    {u}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="sig-form-group">
-              <label>Description (optionnel)</label>
-              <textarea
-                className="sig-textarea"
-                rows={3}
-                placeholder="Décrivez le problème..."
-                value={form.description}
-                onChange={e => setForm({ ...form, description: e.target.value })}
-              />
-            </div>
+        {/* ---------- Urgence ---------- */}
+        <div className="sig-section">
+          <label className="sig-section-label">Urgence</label>
+          <div className="sig-urgence-row">
+            {URGENCES.map(u => (
+              <button
+                key={u.key}
+                type="button"
+                className={`sig-urgence-pill ${urgence === u.key ? 'active' : ''}`}
+                style={urgence === u.key ? { borderColor: u.color, background: u.bg, color: u.color } : null}
+                onClick={() => setUrgence(u.key)}
+              >
+                {u.key}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
-        {step === 3 && (
-          <div className="step-content">
-            <h3>Confirmer le signalement</h3>
-            <div className="recap-card">
-              <div className="recap-row"><span>Conteneur</span><strong>{form.conteneurId}</strong></div>
-              <div className="recap-row"><span>Problème</span><strong>{selectedType?.libelle.replace(/_/g, ' ').toLowerCase() || '-'}</strong></div>
-              <div className="recap-row"><span>Urgence</span><strong>{form.urgence}</strong></div>
-              {form.description && <div className="recap-row"><span>Description</span><strong>{form.description}</strong></div>}
-            </div>
-            <div className="recap-points">
-              <i className="fas fa-star"></i> +10 EcoPoints seront crédités après validation
-            </div>
-            {error && <div style={{ color: '#f44336', marginTop: 12, fontSize: '0.85rem' }}>{error}</div>}
-          </div>
-        )}
-      </div>
+        {/* ---------- Description ---------- */}
+        <div className="sig-section">
+          <label className="sig-section-label">Description</label>
+          <textarea
+            className="sig-textarea"
+            rows={3}
+            placeholder="Décrivez le problème…"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+          />
+        </div>
 
-      <div className="sig-nav-btns">
-        {step > 1 && (
-          <button className="sig-btn-outline" onClick={() => setStep(s => s - 1)}>
-            Précédent
-          </button>
-        )}
-        {step < 3 ? (
-          <button className="sig-btn-primary" onClick={() => setStep(s => s + 1)} disabled={!canNext()}>
-            Suivant
-          </button>
-        ) : (
-          <button className="sig-btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? <span className="spinner"></span> : <>Envoyer (+10 pts)</>}
-          </button>
-        )}
-      </div>
+        {error && <div className="sig-error"><i className="fas fa-exclamation-circle"></i> {error}</div>}
+
+        {/* ---------- Submit ---------- */}
+        <button type="submit" className="sig-submit-btn" disabled={!canSubmit}>
+          {loading
+            ? <><span className="spinner" /> Envoi…</>
+            : <><i className="fas fa-paper-plane"></i> Envoyer le signalement (+10 pts)</>}
+        </button>
+      </form>
     </div>
   );
 }

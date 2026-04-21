@@ -26,10 +26,28 @@ import ConfigurationPage from './pages/desktop/admin/Configuration';
 import GestionnaireDashboard from './pages/desktop/gestionnaire/GestionnaireDashboard';
 import TourneePage from './pages/desktop/gestionnaire/tournee';
 
+import MobileLayout from './pages/mobile/MobileLayout';
+import CitizenHome from './pages/mobile/CitizenHome';
+import CitizenMap from './pages/mobile/CitizenMap';
+import CitizenSignaler from './pages/mobile/CitizenSignaler';
+import CitizenSignalerSuccess from './pages/mobile/CitizenSignalerSuccess';
+import CitizenMesSignalements from './pages/mobile/CitizenMesSignalements';
+import CitizenSignalementDetail from './pages/mobile/CitizenSignalementDetail';
+import CitizenDefis from './pages/mobile/CitizenDefis';
+import CitizenProfil from './pages/mobile/CitizenProfil';
+import CitizenEditProfil from './pages/mobile/CitizenEditProfil';
+import CitizenNotifications from './pages/mobile/CitizenNotifications';
+import CitizenTri from './pages/mobile/CitizenTri';
+import CitizenBoutique from './pages/mobile/CitizenBoutique';
+import CitizenPointsHistorique from './pages/mobile/CitizenPointsHistorique';
+
 function RootRedirect() {
   const { user } = useAuth();
   const role = user?.role || user?.role_par_defaut;
 
+  if (role === 'CITOYEN') {
+    return <Navigate to="/citoyen" replace />;
+  }
   if (role === 'GESTIONNAIRE') {
     return <Navigate to="/gestionnaire" replace />;
   }
@@ -140,6 +158,24 @@ function App() {
               </RoleBasedLayout>
             </ProtectedRoute>
           } />
+
+          {/* Routes Citoyen (Mobile) — all nested under MobileLayout */}
+          <Route path="/citoyen" element={<ProtectedRoute><MobileLayout /></ProtectedRoute>}>
+            <Route index element={<CitizenHome />} />
+            <Route path="carte" element={<CitizenMap />} />
+            <Route path="signaler" element={<CitizenSignaler />} />
+            <Route path="signaler/success" element={<CitizenSignalerSuccess />} />
+            <Route path="signalements" element={<CitizenMesSignalements />} />
+            <Route path="signalements/:id" element={<CitizenSignalementDetail />} />
+            <Route path="defis" element={<CitizenDefis />} />
+            <Route path="profil" element={<CitizenProfil />} />
+            <Route path="profil/modifier" element={<CitizenEditProfil />} />
+            <Route path="notifications" element={<CitizenNotifications />} />
+            <Route path="tri" element={<CitizenTri />} />
+            <Route path="boutique" element={<CitizenBoutique />} />
+            <Route path="points-historique" element={<CitizenPointsHistorique />} />
+            <Route path="*" element={<CitizenHome />} />
+          </Route>
 
           {/* Routes Gestionnaire */}
           <Route path="/gestionnaire" element={

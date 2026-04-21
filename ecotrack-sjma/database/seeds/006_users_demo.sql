@@ -3,23 +3,23 @@
 -- Note: Les mots de passe sont hashés avec bcrypt (10 rounds)
 -- Mot de passe par défaut pour tous: "password123"
 
--- Hash bcrypt pour "password123" : $2a$10$rQEY7GklNdJBjKQpHO4FxOJ5qrwLU4L4TH3qkQQfEHlQ2bq6VqnHC
+-- Hash bcrypt pour "password123" : $2b$10$kUL8chh.nZYhWuO9Yx30RuYf.9SLSYdc6WJCCLukS1FbohNS2eUeq
 
 INSERT INTO utilisateur (email, password_hash, nom, prenom, role_par_defaut, points, est_active) VALUES
   -- Admin
-  ('admin@ecotrack.local', '$2a$10$rQEY7GklNdJBjKQpHO4FxOJ5qrwLU4L4TH3qkQQfEHlQ2bq6VqnHC', 'Admin', 'Super', 'ADMIN', 0, true),
+  ('admin@ecotrack.local', '$2b$10$kUL8chh.nZYhWuO9Yx30RuYf.9SLSYdc6WJCCLukS1FbohNS2eUeq', 'Admin', 'Super', 'ADMIN', 0, true),
 
   -- Gestionnaires
-  ('gestionnaire@ecotrack.local', '$2a$10$rQEY7GklNdJBjKQpHO4FxOJ5qrwLU4L4TH3qkQQfEHlQ2bq6VqnHC', 'Dupont', 'Marie', 'GESTIONNAIRE', 0, true),
+  ('gestionnaire@ecotrack.local', '$2b$10$kUL8chh.nZYhWuO9Yx30RuYf.9SLSYdc6WJCCLukS1FbohNS2eUeq', 'Dupont', 'Marie', 'GESTIONNAIRE', 0, true),
 
   -- Agents de collecte
-  ('agent1@ecotrack.local', '$2a$10$rQEY7GklNdJBjKQpHO4FxOJ5qrwLU4L4TH3qkQQfEHlQ2bq6VqnHC', 'Martin', 'Jean', 'AGENT', 0, true),
-  ('agent2@ecotrack.local', '$2a$10$rQEY7GklNdJBjKQpHO4FxOJ5qrwLU4L4TH3qkQQfEHlQ2bq6VqnHC', 'Bernard', 'Pierre', 'AGENT', 0, true),
+  ('agent1@ecotrack.local', '$2b$10$kUL8chh.nZYhWuO9Yx30RuYf.9SLSYdc6WJCCLukS1FbohNS2eUeq', 'Martin', 'Jean', 'AGENT', 0, true),
+  ('agent2@ecotrack.local', '$2b$10$kUL8chh.nZYhWuO9Yx30RuYf.9SLSYdc6WJCCLukS1FbohNS2eUeq', 'Bernard', 'Pierre', 'AGENT', 0, true),
 
   -- Citoyens
-  ('citoyen1@ecotrack.local', '$2a$10$rQEY7GklNdJBjKQpHO4FxOJ5qrwLU4L4TH3qkQQfEHlQ2bq6VqnHC', 'Petit', 'Sophie', 'CITOYEN', 150, true),
-  ('citoyen2@ecotrack.local', '$2a$10$rQEY7GklNdJBjKQpHO4FxOJ5qrwLU4L4TH3qkQQfEHlQ2bq6VqnHC', 'Moreau', 'Lucas', 'CITOYEN', 320, true),
-  ('citoyen3@ecotrack.local', '$2a$10$rQEY7GklNdJBjKQpHO4FxOJ5qrwLU4L4TH3qkQQfEHlQ2bq6VqnHC', 'Garcia', 'Emma', 'CITOYEN', 75, true)
+  ('citoyen1@ecotrack.local', '$2b$10$kUL8chh.nZYhWuO9Yx30RuYf.9SLSYdc6WJCCLukS1FbohNS2eUeq', 'Petit', 'Sophie', 'CITOYEN', 150, true),
+  ('citoyen2@ecotrack.local', '$2b$10$kUL8chh.nZYhWuO9Yx30RuYf.9SLSYdc6WJCCLukS1FbohNS2eUeq', 'Moreau', 'Lucas', 'CITOYEN', 320, true),
+  ('citoyen3@ecotrack.local', '$2b$10$kUL8chh.nZYhWuO9Yx30RuYf.9SLSYdc6WJCCLukS1FbohNS2eUeq', 'Garcia', 'Emma', 'CITOYEN', 75, true)
 ON CONFLICT (email) DO NOTHING;
 
 -- Assigner les rôles aux utilisateurs (user_role)

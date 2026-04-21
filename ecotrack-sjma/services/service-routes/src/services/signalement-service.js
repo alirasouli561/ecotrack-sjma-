@@ -9,6 +9,40 @@ class SignalementService {
     return this.repository.findAll(filters);
   }
 
+  async create(data) {
+    const ApiError = require('../utils/api-error');
+    if (!data.description || !data.description.trim()) {
+      throw ApiError.badRequest('Le champ "description" est requis');
+    }
+    if (!data.id_type) {
+      throw ApiError.badRequest('Le champ "id_type" est requis');
+    }
+    if (!data.id_citoyen) {
+      throw ApiError.badRequest('Le champ "id_citoyen" est requis');
+    }
+
+    // Accept either id_conteneur (int) or conteneur_uid (string) from the frontend
+    let id_conteneur = data.id_conteneur;
+    if (!id_conteneur && data.conteneur_uid) {
+      const row = await this.repository.findConteneurByUidOrId(data.conteneur_uid);
+      if (!row) {
+        throw ApiError.badRequest(`Conteneur introuvable pour "${data.conteneur_uid}"`);
+      }
+      id_conteneur = row.id_conteneur;
+    }
+    if (!id_conteneur) {
+      throw ApiError.badRequest('Le champ "id_conteneur" ou "conteneur_uid" est requis');
+    }
+
+    return this.repository.create({
+      description: data.description,
+      id_type: data.id_type,
+      id_conteneur,
+      id_citoyen: data.id_citoyen,
+      url_photo: data.url_photo || null,
+    });
+  }
+
   async getById(id) {
     const signalement = await this.repository.findById(id);
     if (!signalement) {

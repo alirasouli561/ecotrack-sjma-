@@ -5,6 +5,19 @@ class SignalementController {
     this.service = service;
   }
 
+  create = async (req, res) => {
+    try {
+      // id_citoyen comes from the JWT context forwarded by the gateway.
+      const id_citoyen = parseInt(req.headers['x-user-id'], 10) || req.body.id_citoyen;
+      const payload = { ...req.body, id_citoyen };
+      const signalement = await this.service.create(payload);
+      return res.status(201).json(ApiResponse.success(signalement, 'Signalement créé'));
+    } catch (error) {
+      const status = error.status || error.statusCode || 500;
+      return res.status(status).json(ApiResponse.error(status, error.message));
+    }
+  };
+
   getAll = async (req, res) => {
     try {
       const filters = {

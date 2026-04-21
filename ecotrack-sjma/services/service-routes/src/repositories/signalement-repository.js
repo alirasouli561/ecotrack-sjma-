@@ -349,6 +349,27 @@ class SignalementRepository {
     );
     return result.rows;
   }
+
+  async findConteneurByUidOrId(identifier) {
+    // Accept either numeric id or UID string (e.g., "CNT-00012")
+    const asInt = parseInt(identifier, 10);
+    if (!isNaN(asInt) && String(asInt) === String(identifier)) {
+      const r = await this.db.query('SELECT id_conteneur FROM conteneur WHERE id_conteneur = $1 LIMIT 1', [asInt]);
+      return r.rows[0] || null;
+    }
+    const r = await this.db.query('SELECT id_conteneur FROM conteneur WHERE uid = $1 LIMIT 1', [identifier]);
+    return r.rows[0] || null;
+  }
+
+  async create({ description, id_type, id_conteneur, id_citoyen, url_photo = null }) {
+    const result = await this.db.query(
+      `INSERT INTO signalement (description, statut, id_type, id_conteneur, id_citoyen, url_photo)
+       VALUES ($1, 'OUVERT', $2, $3, $4, $5)
+       RETURNING *`,
+      [description, id_type, id_conteneur, id_citoyen, url_photo]
+    );
+    return result.rows[0];
+  }
 }
 
 module.exports = SignalementRepository;
